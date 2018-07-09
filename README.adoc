@@ -1,0 +1,10 @@
+= Geronimo Microprofile Health Implementation
+
+[source,xml]
+----
+<parent>
+  <groupId>org.apache.geronimo</groupId>
+  <artifactId>geronimo-health</artifactId>
+  <version>${project.version}</version>
+</parent>
+----
