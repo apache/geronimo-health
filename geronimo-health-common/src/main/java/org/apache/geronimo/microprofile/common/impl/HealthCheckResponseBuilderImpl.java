@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.geronimo.microprofile.impl.health.impl;
+package org.apache.geronimo.microprofile.common.impl;
 
 import java.util.HashMap;
 import java.util.Map;

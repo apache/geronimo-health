@@ -14,14 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.geronimo.microprofile.impl.health.impl;
+package org.apache.geronimo.microprofile.common.registry;
 
-import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
-import org.eclipse.microprofile.health.spi.HealthCheckResponseProvider;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.ServiceLoader;
 
-public class HealthCheckResponseProviderImpl implements HealthCheckResponseProvider {
-    @Override
-    public HealthCheckResponseBuilder createResponseBuilder() {
-        return new HealthCheckResponseBuilderImpl();
+import org.eclipse.microprofile.health.HealthCheck;
+
+public interface HealthChecksRegistry {
+    Collection<HealthCheck> getChecks();
+
+    static HealthChecksRegistry load() {
+        final Iterator<HealthChecksRegistry> iterator = ServiceLoader.load(HealthChecksRegistry.class).iterator();
+        if (iterator.hasNext()) {
+            return iterator.next();
+        }
+        throw new IllegalStateException("No implementation of HealthChecksRegistry found");
     }
 }

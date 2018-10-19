@@ -14,35 +14,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.geronimo.microprofile.impl.health.jaxrs;
+package org.apache.geronimo.microprofile.common.jaxrs;
 
 import static java.util.stream.Collectors.toList;
 
 import java.util.Collection;
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.geronimo.microprofile.impl.health.cdi.GeronimoHealthExtension;
+import org.apache.geronimo.microprofile.common.registry.HealthChecksRegistry;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 
 @Path("health")
-@ApplicationScoped
+// @ApplicationScoped
 public class HealthChecksEndpoint {
-    @Inject
-    private GeronimoHealthExtension extension;
+    private HealthChecksRegistry registry;
+
+    public void setRegistry(final HealthChecksRegistry registry) {
+        this.registry = registry;
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getChecks() {
-        final List<HealthCheckResponse> checks = extension.getChecks()
+        if (registry == null) {
+            registry = HealthChecksRegistry.load();
+        }
+
+        final List<HealthCheckResponse> checks = registry.getChecks()
                                                            .stream()
                                                            .map(HealthCheck::call)
                                                            .collect(toList());

@@ -15,19 +15,24 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" http://maven.apache.org/POM/4.0.0           http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="
+          http://maven.apache.org/POM/4.0.0
+          http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>20</version>
+    <version>21</version>
   </parent>
 
   <groupId>org.apache.geronimo</groupId>
-  <artifactId>geronimo-health</artifactId>
+  <artifactId>geronimo-health-parent</artifactId>
   <version>1.0.1-SNAPSHOT</version>
-  <name>Geronimo Microprofile Health Implementation</name>
+  <name>Geronimo Health</name>
+  <packaging>pom</packaging>
 
   <description>
     Apache Geronimo implementation of the Microprofile Health Specification
@@ -43,6 +48,11 @@
   <properties>
     <spec.version>1.0</spec.version>
   </properties>
+
+  <modules>
+    <module>geronimo-health-common</module>
+    <module>geronimo-health</module>
+  </modules>
 
   <dependencies>
     <dependency>
@@ -74,80 +84,6 @@
       <version>1.0</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-interceptor_1.2_spec</artifactId>
-      <version>1.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-atinject_1.0_spec</artifactId>
-      <version>1.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-jcdi_2.0_spec</artifactId>
-      <version>1.0.1</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-annotation_1.3_spec</artifactId>
-      <version>1.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.microprofile.config</groupId>
-      <artifactId>microprofile-config-api</artifactId>
-      <version>1.2</version>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-
-    <dependency> <!-- issue with the cache key -->
-      <groupId>org.apache.openwebbeans</groupId>
-      <artifactId>openwebbeans-impl</artifactId>
-      <version>2.0.5</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-jacc_1.1_spec</artifactId>
-      <version>1.0.2</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.arquillian.testng</groupId>
-      <artifactId>arquillian-testng-container</artifactId>
-      <version>1.1.13.Final</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testng</groupId>
-      <artifactId>testng</artifactId>
-      <version>6.8.21</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.meecrowave</groupId>
-      <artifactId>meecrowave-arquillian</artifactId>
-      <version>1.2.1</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>javax.inject</groupId>
-          <artifactId>javax.inject</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.microprofile.health</groupId>
-      <artifactId>microprofile-health-tck</artifactId>
-      <version>${spec.version}</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>
@@ -155,7 +91,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.7.0</version>
+        <version>3.8.0</version>
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
@@ -163,22 +99,12 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.22.0</version>
-        <configuration>
-          <dependenciesToScan>
-            <dependency>org.eclipse.microprofile.health:microprofile-health-tck</dependency>
-          </dependenciesToScan>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>3.0.2</version>
+        <version>3.1.0</version>
         <configuration>
           <archive combine.children="append">
             <manifestEntries>
-              <Automatic-Module-Name>org.apache.geronimo.microprofile.health</Automatic-Module-Name>
+              <Automatic-Module-Name>${geronimo-health.Automatic-Module-Name}</Automatic-Module-Name>
             </manifestEntries>
           </archive>
         </configuration>

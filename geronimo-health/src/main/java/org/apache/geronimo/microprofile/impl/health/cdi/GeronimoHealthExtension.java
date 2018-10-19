@@ -33,10 +33,11 @@ import javax.enterprise.inject.spi.BeforeShutdown;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessBean;
 
+import org.apache.geronimo.microprofile.common.registry.HealthChecksRegistry;
 import org.eclipse.microprofile.health.Health;
 import org.eclipse.microprofile.health.HealthCheck;
 
-public class GeronimoHealthExtension implements Extension {
+public class GeronimoHealthExtension implements Extension, HealthChecksRegistry {
     private final Collection<Bean<?>> beans = new ArrayList<>();
     private final Collection<CreationalContext<?>> contexts = new ArrayList<>();
     private List<HealthCheck> checks;
@@ -70,6 +71,7 @@ public class GeronimoHealthExtension implements Extension {
         }
     }
 
+    @Override
     public List<HealthCheck> getChecks() {
         return checks;
     }
