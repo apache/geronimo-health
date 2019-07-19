@@ -35,7 +35,12 @@ public class HealthCheckResponseImpl extends HealthCheckResponse {
     }
 
     @Override
+    @JsonbTransient
     public State getState() {
+        return state;
+    }
+
+    public State getStatus() {
         return state;
     }
 

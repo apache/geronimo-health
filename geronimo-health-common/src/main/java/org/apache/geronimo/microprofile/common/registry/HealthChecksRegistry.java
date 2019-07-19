@@ -24,6 +24,9 @@ import org.eclipse.microprofile.health.HealthCheck;
 
 public interface HealthChecksRegistry {
     Collection<HealthCheck> getChecks();
+    Collection<HealthCheck> getReadiness();
+    Collection<HealthCheck> getLiveness();
+    boolean isReady();
 
     static HealthChecksRegistry load() {
         final Iterator<HealthChecksRegistry> iterator = ServiceLoader.load(HealthChecksRegistry.class).iterator();

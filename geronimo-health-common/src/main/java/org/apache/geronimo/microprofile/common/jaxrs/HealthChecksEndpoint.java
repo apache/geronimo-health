@@ -20,6 +20,8 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -34,7 +36,7 @@ import org.eclipse.microprofile.health.HealthCheckResponse;
 @Path("health")
 // @ApplicationScoped
 public class HealthChecksEndpoint {
-    private HealthChecksRegistry registry;
+    private volatile HealthChecksRegistry registry;
 
     public void setRegistry(final HealthChecksRegistry registry) {
         this.registry = registry;
@@ -43,16 +45,40 @@ public class HealthChecksEndpoint {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getChecks() {
-        if (registry == null) {
-            registry = HealthChecksRegistry.load();
-        }
+        return toResponse(HealthChecksRegistry::getChecks, r -> {});
+    }
 
-        final List<HealthCheckResponse> checks = registry.getChecks()
-                                                           .stream()
-                                                           .map(HealthCheck::call)
-                                                           .collect(toList());
+    @GET
+    @Path("live")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getLiveChecks() {
+        return toResponse(HealthChecksRegistry::getLiveness, r -> {});
+    }
+
+    @GET
+    @Path("ready")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getReadyChecks() {
+        return toResponse(HealthChecksRegistry::getReadiness, r -> {});
+    }
+
+    private Response toResponse(final Function<HealthChecksRegistry, Collection<HealthCheck>> extractor,
+                                final Consumer<HealthChecksRegistry> validate) {
+        if (registry == null) {
+            synchronized (this) {
+                if (registry == null) {
+                    registry = HealthChecksRegistry.load();
+                }
+            }
+        }
+        validate.accept(registry);
+
+        final List<HealthCheckResponse> checks = extractor.apply(registry)
+                .stream()
+                .map(HealthCheck::call)
+                .collect(toList());
         final HealthCheckResponse.State globalState = checks.stream()
-                    .reduce(HealthCheckResponse.State.UP, (a, b) -> combine(a, b.getState()), this::combine);
+                .reduce(HealthCheckResponse.State.UP, (a, b) -> combine(a, b.getState()), this::combine);
         return Response.status(globalState == HealthCheckResponse.State.DOWN ? Response.Status.SERVICE_UNAVAILABLE : Response.Status.OK).entity(new AggregatedResponse(globalState, checks)).build();
     }
 
@@ -71,11 +97,6 @@ public class HealthChecksEndpoint {
         }
 
         public HealthCheckResponse.State getStatus() {
-            return status;
-        }
-
-        @Deprecated
-        public HealthCheckResponse.State getOutcome() {
             return status;
         }
 

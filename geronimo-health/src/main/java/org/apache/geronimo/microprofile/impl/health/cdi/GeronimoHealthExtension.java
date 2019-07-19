@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.event.Observes;
@@ -32,26 +33,61 @@ import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.BeforeShutdown;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessBean;
+import javax.enterprise.util.AnnotationLiteral;
 
 import org.apache.geronimo.microprofile.common.registry.HealthChecksRegistry;
 import org.eclipse.microprofile.health.Health;
 import org.eclipse.microprofile.health.HealthCheck;
+import org.eclipse.microprofile.health.Liveness;
+import org.eclipse.microprofile.health.Readiness;
 
 public class GeronimoHealthExtension implements Extension, HealthChecksRegistry {
     private final Collection<Bean<?>> beans = new ArrayList<>();
+    private final Collection<Bean<?>> livenessBeans = new ArrayList<>();
+    private final Collection<Bean<?>> readinessBeans = new ArrayList<>();
     private final Collection<CreationalContext<?>> contexts = new ArrayList<>();
     private List<HealthCheck> checks;
+    private List<HealthCheck> liveness;
+    private List<HealthCheck> readiness;
+    private boolean started = false;
+
+    private static class LivenessLiteral extends AnnotationLiteral<Liveness> {
+        private static final Annotation INSTANCE = new LivenessLiteral();
+    }
+
+    private static class ReadinessLiteral extends AnnotationLiteral<Readiness> {
+        private static final Annotation INSTANCE = new ReadinessLiteral();
+    }
 
     void findChecks(@Observes final ProcessBean<?> bean) {
-        if (bean.getAnnotated().isAnnotationPresent(Health.class) && bean.getBean().getTypes().contains(HealthCheck.class)) {
+        if (!bean.getBean().getTypes().contains(HealthCheck.class)) {
+            return;
+        }
+        if (bean.getAnnotated().isAnnotationPresent(Health.class)) {
             beans.add(bean.getBean());
+        }
+        if (bean.getBean().getQualifiers().contains(LivenessLiteral.INSTANCE)) {
+            livenessBeans.add(bean.getBean());
+        }
+        if (bean.getBean().getQualifiers().contains(ReadinessLiteral.INSTANCE)) {
+            readinessBeans.add(bean.getBean());
         }
     }
 
     void start(@Observes final AfterDeploymentValidation afterDeploymentValidation, final BeanManager beanManager) {
-        checks = beans.stream()
+        liveness = livenessBeans.stream()
              .map(it -> lookup(it, beanManager))
              .collect(toList());
+        readiness = readinessBeans.stream()
+             .map(it -> lookup(it, beanManager))
+             .collect(toList());
+        checks = Stream.concat(Stream.concat(
+                    beans.stream()
+                        .map(it -> lookup(it, beanManager)),
+                    liveness.stream()),
+                    readiness.stream())
+                .collect(toList());
+        started = true;
     }
 
     void stop(@Observes final BeforeShutdown beforeShutdown) {
@@ -76,9 +112,24 @@ public class GeronimoHealthExtension implements Extension, HealthChecksRegistry 
         return checks;
     }
 
+    @Override
+    public Collection<HealthCheck> getReadiness() {
+        return readiness;
+    }
+
+    @Override
+    public Collection<HealthCheck> getLiveness() {
+        return liveness;
+    }
+
+    @Override
+    public boolean isReady() {
+        return started;
+    }
+
     private HealthCheck lookup(final Bean<?> bean, final BeanManager manager) {
         final Class<?> type = bean.getBeanClass() == null ? HealthCheck.class : bean.getBeanClass();
-        final Set<Bean<?>> beans = manager.getBeans(type, bean.getQualifiers().toArray(new Annotation[bean.getQualifiers().size()]));
+        final Set<Bean<?>> beans = manager.getBeans(type, bean.getQualifiers().toArray(new Annotation[0]));
         final Bean<?> resolvedBean = manager.resolve(beans);
         final CreationalContext<Object> creationalContext = manager.createCreationalContext(null);
         if (!manager.isNormalScope(resolvedBean.getScope())) {
