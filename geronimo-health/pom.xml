@@ -21,11 +21,11 @@
   <parent>
     <artifactId>geronimo-health-parent</artifactId>
     <groupId>org.apache.geronimo</groupId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.0.2</version>
   </parent>
 
   <artifactId>geronimo-health</artifactId>
-  <version>1.0.2-SNAPSHOT</version>
+  <version>1.0.2</version>
   <name>Geronimo Health :: Microprofile</name>
 
   <properties>
