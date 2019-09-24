@@ -5,9 +5,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- *
+ * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,7 +34,6 @@ import javax.enterprise.inject.spi.BeforeShutdown;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessBean;
 import javax.enterprise.util.AnnotationLiteral;
-
 import org.apache.geronimo.microprofile.common.registry.HealthChecksRegistry;
 import org.eclipse.microprofile.health.Health;
 import org.eclipse.microprofile.health.HealthCheck;
@@ -63,6 +62,7 @@ public class GeronimoHealthExtension implements Extension, HealthChecksRegistry 
         if (!bean.getBean().getTypes().contains(HealthCheck.class)) {
             return;
         }
+        // deprecated - use @Liveness or @Readiness
         if (bean.getAnnotated().isAnnotationPresent(Health.class)) {
             beans.add(bean.getBean());
         }
@@ -76,17 +76,20 @@ public class GeronimoHealthExtension implements Extension, HealthChecksRegistry 
 
     void start(@Observes final AfterDeploymentValidation afterDeploymentValidation, final BeanManager beanManager) {
         liveness = livenessBeans.stream()
-             .map(it -> lookup(it, beanManager))
-             .collect(toList());
-        readiness = readinessBeans.stream()
-             .map(it -> lookup(it, beanManager))
-             .collect(toList());
-        checks = Stream.concat(Stream.concat(
-                    beans.stream()
-                        .map(it -> lookup(it, beanManager)),
-                    liveness.stream()),
-                    readiness.stream())
+                .map(it -> lookup(it, beanManager))
                 .collect(toList());
+
+        readiness = readinessBeans.stream()
+                .map(it -> lookup(it, beanManager))
+                .collect(toList());
+
+        // per spec, checks has everything including liveness and readiness
+        checks = Stream.concat(Stream.concat(
+                        beans.stream().map(it -> lookup(it, beanManager)),
+                        liveness.stream()),
+                        readiness.stream())
+                .collect(toList());
+
         started = true;
     }
 
@@ -128,8 +131,12 @@ public class GeronimoHealthExtension implements Extension, HealthChecksRegistry 
     }
 
     private HealthCheck lookup(final Bean<?> bean, final BeanManager manager) {
-        final Class<?> type = bean.getBeanClass() == null ? HealthCheck.class : bean.getBeanClass();
-        final Set<Bean<?>> beans = manager.getBeans(type, bean.getQualifiers().toArray(new Annotation[0]));
+        // if this is not an instance of HealthCheck, then it's a producer (not sure it's enough)
+        final Class<?> type = bean.getBeanClass() == null || !HealthCheck.class.isAssignableFrom(bean.getBeanClass())
+                ? HealthCheck.class
+                : bean.getBeanClass();
+        final Set<Annotation> qualifiers = bean.getQualifiers();
+        final Set<Bean<?>> beans = manager.getBeans(type, qualifiers.toArray(new Annotation[qualifiers.size()]));
         final Bean<?> resolvedBean = manager.resolve(beans);
         final CreationalContext<Object> creationalContext = manager.createCreationalContext(null);
         if (!manager.isNormalScope(resolvedBean.getScope())) {
