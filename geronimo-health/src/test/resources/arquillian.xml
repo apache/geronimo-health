@@ -24,7 +24,18 @@
       <property name="scanningExcludes">
         org.osgi,
         arquillian,
-        microprofile-
+        microprofile-,
+        bsh,
+        btf,
+        jackson,
+        jacorb,
+        json-schema,
+        libphone,
+        mail,
+        msg,
+        snake,
+        guava,
+        uri
       </property>
     </configuration>
   </container>

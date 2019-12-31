@@ -21,11 +21,12 @@
   <parent>
     <artifactId>geronimo-health-parent</artifactId>
     <groupId>org.apache.geronimo</groupId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
   </parent>
 
   <artifactId>geronimo-health</artifactId>
-  <name>Geronimo Health :: MicroProfile</name>
+  <version>1.0.3-SNAPSHOT</version>
+  <name>Geronimo Health :: Microprofile</name>
 
   <properties>
     <geronimo-health.Automatic-Module-Name>org.apache.geronimo.microprofile.health</geronimo-health.Automatic-Module-Name>
@@ -85,7 +86,7 @@
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <version>6.8.21</version>
+      <version>6.9.9</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -109,7 +110,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>20.0</version>
+      <version>28.1-jre</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

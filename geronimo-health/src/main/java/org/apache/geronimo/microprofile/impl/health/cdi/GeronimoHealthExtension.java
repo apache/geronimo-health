@@ -85,9 +85,9 @@ public class GeronimoHealthExtension implements Extension, HealthChecksRegistry 
 
         // per spec, checks has everything including liveness and readiness
         checks = Stream.concat(Stream.concat(
-                        beans.stream().map(it -> lookup(it, beanManager)),
-                        liveness.stream()),
-                        readiness.stream())
+                beans.stream().map(it -> lookup(it, beanManager)),
+                liveness.stream()),
+                readiness.stream())
                 .collect(toList());
 
         started = true;
