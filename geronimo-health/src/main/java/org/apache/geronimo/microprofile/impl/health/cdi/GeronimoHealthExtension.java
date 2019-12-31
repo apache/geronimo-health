@@ -132,12 +132,16 @@ public class GeronimoHealthExtension implements Extension, HealthChecksRegistry 
 
     private HealthCheck lookup(final Bean<?> bean, final BeanManager manager) {
         // if this is not an instance of HealthCheck, then it's a producer (not sure it's enough)
-        final Class<?> type = bean.getBeanClass() == null || !HealthCheck.class.isAssignableFrom(bean.getBeanClass())
-                ? HealthCheck.class
-                : bean.getBeanClass();
-        final Set<Annotation> qualifiers = bean.getQualifiers();
-        final Set<Bean<?>> beans = manager.getBeans(type, qualifiers.toArray(new Annotation[qualifiers.size()]));
-        final Bean<?> resolvedBean = manager.resolve(beans);
+        final Class<?> type = bean.getBeanClass() == null ?
+                HealthCheck.class :
+                (bean.getTypes().contains(bean.getBeanClass()) ? bean.getBeanClass() : HealthCheck.class);
+        final Bean<?> resolvedBean;
+        if (type != HealthCheck.class) {
+            final Set<Bean<?>> beans = manager.getBeans(type, bean.getQualifiers().toArray(new Annotation[0]));
+            resolvedBean = manager.resolve(beans);
+        } else {
+            resolvedBean = bean;
+        }
         final CreationalContext<Object> creationalContext = manager.createCreationalContext(null);
         if (!manager.isNormalScope(resolvedBean.getScope())) {
             contexts.add(creationalContext);
