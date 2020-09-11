@@ -16,17 +16,16 @@
  */
 package org.apache.geronimo.microprofile.common.impl;
 
-import java.util.Map;
-import java.util.Optional;
+import org.eclipse.microprofile.health.HealthCheckResponse;
 
 import javax.json.bind.annotation.JsonbProperty;
 import javax.json.bind.annotation.JsonbTransient;
-
-import org.eclipse.microprofile.health.HealthCheckResponse;
+import java.util.Map;
+import java.util.Optional;
 
 public class HealthCheckResponseImpl extends HealthCheckResponse {
     private String name;
-    private State state;
+    private Status state;
     private Map<String, Object> data;
 
     @Override
@@ -34,13 +33,7 @@ public class HealthCheckResponseImpl extends HealthCheckResponse {
         return name;
     }
 
-    @Override
-    @JsonbTransient
-    public State getState() {
-        return state;
-    }
-
-    public State getStatus() {
+    public Status getStatus() {
         return state;
     }
 
@@ -59,7 +52,7 @@ public class HealthCheckResponseImpl extends HealthCheckResponse {
         this.name = name;
     }
 
-    public void setState(final State state) {
+    public void setState(final Status state) {
         this.state = state;
     }
 

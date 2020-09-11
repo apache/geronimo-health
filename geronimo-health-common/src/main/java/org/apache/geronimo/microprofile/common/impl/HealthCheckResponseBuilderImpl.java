@@ -51,17 +51,22 @@ public class HealthCheckResponseBuilderImpl extends HealthCheckResponseBuilder {
 
     @Override
     public HealthCheckResponseBuilder up() {
-        response.setState(HealthCheckResponse.State.UP);
+        response.setState(HealthCheckResponse.Status.UP);
         return this;
     }
 
     @Override
     public HealthCheckResponseBuilder down() {
-        response.setState(HealthCheckResponse.State.DOWN);
+        response.setState(HealthCheckResponse.Status.DOWN);
         return this;
     }
 
     @Override
+    public HealthCheckResponseBuilder status(final boolean up) {
+        return state(up);
+    }
+
+    // @Override - dropped from the spec
     public HealthCheckResponseBuilder state(final boolean up) {
         if (up) {
             up();

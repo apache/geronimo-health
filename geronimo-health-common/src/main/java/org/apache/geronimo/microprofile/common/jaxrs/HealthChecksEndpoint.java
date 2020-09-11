@@ -16,22 +16,21 @@
  */
 package org.apache.geronimo.microprofile.common.jaxrs;
 
-import static java.util.stream.Collectors.toList;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import org.apache.geronimo.microprofile.common.registry.HealthChecksRegistry;
+import org.eclipse.microprofile.health.HealthCheck;
+import org.eclipse.microprofile.health.HealthCheckResponse;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-import org.apache.geronimo.microprofile.common.registry.HealthChecksRegistry;
-import org.eclipse.microprofile.health.HealthCheck;
-import org.eclipse.microprofile.health.HealthCheckResponse;
+import static java.util.stream.Collectors.toList;
 
 @Path("health")
 // @ApplicationScoped
@@ -77,26 +76,26 @@ public class HealthChecksEndpoint {
                 .stream()
                 .map(HealthCheck::call)
                 .collect(toList());
-        final HealthCheckResponse.State globalState = checks.stream()
-                .reduce(HealthCheckResponse.State.UP, (a, b) -> combine(a, b.getState()), this::combine);
-        return Response.status(globalState == HealthCheckResponse.State.DOWN ? Response.Status.SERVICE_UNAVAILABLE : Response.Status.OK).entity(new AggregatedResponse(globalState, checks)).build();
+        final HealthCheckResponse.Status globalState = checks.stream()
+                .reduce(HealthCheckResponse.Status.UP, (a, b) -> combine(a, b.getStatus()), this::combine);
+        return Response.status(globalState == HealthCheckResponse.Status.DOWN ? Response.Status.SERVICE_UNAVAILABLE : Response.Status.OK).entity(new AggregatedResponse(globalState, checks)).build();
     }
 
-    private HealthCheckResponse.State combine(final HealthCheckResponse.State a, final HealthCheckResponse.State b) {
-        return a == HealthCheckResponse.State.DOWN || b == HealthCheckResponse.State.DOWN ? HealthCheckResponse.State.DOWN : a;
+    private HealthCheckResponse.Status combine(final HealthCheckResponse.Status a, final HealthCheckResponse.Status b) {
+        return a == HealthCheckResponse.Status.DOWN || b == HealthCheckResponse.Status.DOWN ? HealthCheckResponse.Status.DOWN : a;
     }
 
     public static class AggregatedResponse {
-        private HealthCheckResponse.State status;
+        private HealthCheckResponse.Status status;
         private Collection<HealthCheckResponse> checks;
 
-        private AggregatedResponse(final HealthCheckResponse.State state,
+        private AggregatedResponse(final HealthCheckResponse.Status state,
                                   final Collection<HealthCheckResponse> checks) {
             this.status = state;
             this.checks = checks;
         }
 
-        public HealthCheckResponse.State getStatus() {
+        public HealthCheckResponse.Status getStatus() {
             return status;
         }
 

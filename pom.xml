@@ -42,7 +42,7 @@
   </scm>
 
   <properties>
-    <spec.version>2.1</spec.version>
+    <spec.version>3.0-RC3</spec.version>
   </properties>
 
   <modules>

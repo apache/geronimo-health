@@ -16,14 +16,10 @@
  */
 package org.apache.geronimo.microprofile.impl.health.cdi;
 
-import static java.util.stream.Collectors.toList;
-
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
+import org.apache.geronimo.microprofile.common.registry.HealthChecksRegistry;
+import org.eclipse.microprofile.health.HealthCheck;
+import org.eclipse.microprofile.health.Liveness;
+import org.eclipse.microprofile.health.Readiness;
 
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.event.Observes;
@@ -34,11 +30,14 @@ import javax.enterprise.inject.spi.BeforeShutdown;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessBean;
 import javax.enterprise.util.AnnotationLiteral;
-import org.apache.geronimo.microprofile.common.registry.HealthChecksRegistry;
-import org.eclipse.microprofile.health.Health;
-import org.eclipse.microprofile.health.HealthCheck;
-import org.eclipse.microprofile.health.Liveness;
-import org.eclipse.microprofile.health.Readiness;
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 public class GeronimoHealthExtension implements Extension, HealthChecksRegistry {
     private final Collection<Bean<?>> beans = new ArrayList<>();
@@ -61,10 +60,6 @@ public class GeronimoHealthExtension implements Extension, HealthChecksRegistry 
     void findChecks(@Observes final ProcessBean<?> bean) {
         if (!bean.getBean().getTypes().contains(HealthCheck.class)) {
             return;
-        }
-        // deprecated - use @Liveness or @Readiness
-        if (bean.getAnnotated().isAnnotationPresent(Health.class)) {
-            beans.add(bean.getBean());
         }
         if (bean.getBean().getQualifiers().contains(LivenessLiteral.INSTANCE)) {
             livenessBeans.add(bean.getBean());
